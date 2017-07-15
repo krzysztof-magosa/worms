@@ -76,13 +76,13 @@ class Board(object):
 
 
 class Worm(object):
-    GENES_NUM = 25
+    GENES_NUM = 28
     GENES_GENDER = slice(0, 1)  # 0
     GENES_SPECIES = slice(1, 4)  # 1-3 (3)
     GENES_AGGRESSION = slice(4, 10)  # 4-9 (5)
     GENES_HEALTH = slice(10, 16)  # 10-15 (5)
     GENES_STRENGTH = slice(16, 22)  # 16-21 (5)
-    GENES_TEMPERAMENT = slice(22, 28) # 22-27 (5)
+    GENES_TEMPERAMENT = slice(22, 28)  # 22-27 (5)
 
     MOVES = [
         # x,  y
@@ -114,13 +114,15 @@ class Worm(object):
 
     def __init__(self, board, genes=None):
         self.board = board
-        self.genes = genes if genes else h.generate_bin(20)
+        self.genes = genes if genes else h.generate_bin(self.GENES_NUM)
         self.health = h.decode_bin(self.genes[self.GENES_HEALTH])
         self.energy = 1.0
         self.turn_energy = 0.05
         self.starvation_impact = 0.20 * self.health
         self.garbage = False
         self.strength = h.decode_bin(self.genes[self.GENES_STRENGTH])
+        self.temperament = h.decode_bin(self.genes[self.GENES_TEMPERAMENT])
+        self.aggression = h.decode_bin(self.genes[self.GENES_AGGRESSION])
 
     def destroy(self):
 #        print("TO BE DESTROYED")
@@ -133,11 +135,6 @@ class Worm(object):
     @property
     def species(self):
         return h.decode_dict(self.genes[self.GENES_SPECIES], self.SPECIES)
-
-    @property
-    def wants_attack(self):
-        p = h.decode_bin(self.genes[self.GENES_AGGRESSION])
-        return h.probability(p)
 
     @property
     def alive(self):
@@ -174,6 +171,34 @@ class Worm(object):
     def available_targets(self):
         return [x for x in self.surrounding_targets if self.board.is_correct_position(x) and self.board.is_free(x)]
 
+    @property
+    def possible_nonfree(self):
+        return [x for x in self.surrounding_targets if self.board.is_correct_position(x) and not self.board.is_free(x)]
+
+    @property
+    def possible_food(self):
+        return [x for x in self.possible_nonfree if not self.board.at(x).alive]
+
+    @property
+    def possible_partners(self):
+        return [x for x in self.possible_nonfree if self.board.at(x).alive and self.board.at(x).species == self.species]
+
+    @property
+    def possible_victims(self):
+        return [x for x in self.possible_nonfree if self.board.at(x).alive and self.board.at(x).species != self.species]
+
+    @property
+    def want_food(self):
+        return self.energy <= 0.2
+
+    @property
+    def want_procreation(self):
+        return h.probability(self.temperament)
+
+    @property
+    def want_attack(self):
+        return h.probability(self.aggression)
+
     def turn(self):
         if not self.alive:
             return
@@ -184,6 +209,21 @@ class Worm(object):
         # being hungry kills ;-)
         if self.energy == 0:
             self.health = max(self.health - self.starvation_impact, 0.0)
+
+        food = self.possible_food
+        if food and self.want_food:
+            self.eat(random.choice(food))
+            return
+
+        victims = self.possible_victims
+        if victims and self.want_attack:
+            self.attack(random.choice(victims))
+            return
+
+        partners = self.possible_partners
+        if partners and self.want_procreation:
+            self.procreate(random.choice(partners))
+            return
 
         target = random.choice(self.possible_targets)
 
@@ -203,7 +243,7 @@ class Worm(object):
                             c = Worm(board=self.board, genes=x)
                             self.board.worms.append(c)
                             c.place(targets[i])
-                            print("BEBOK")
+#                            print("BEBOK")
 
                 else:
                     if self.wants_attack:
