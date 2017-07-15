@@ -193,11 +193,35 @@ class Worm(object):
 
     @property
     def want_procreation(self):
-        return h.probability(self.temperament)
+        targets = self.available_targets
+        return len(targets) >= 2 and h.probability(self.temperament)
 
     @property
     def want_attack(self):
         return h.probability(self.aggression)
+
+    def attack(self, pos):
+        neighbor = self.board.at(pos)
+        impact = neighbor.health * self.strength
+        neighbor.health = max(neighbor.health - impact, 0.0)
+
+    def procreate(self, pos):
+        neighbor = self.board.at(pos)
+        targets = self.available_targets
+        random.shuffle(targets)
+        # @TODO maybe random.choices() to be used with python 3
+
+        a, b = h.crossover(self.genes, neighbor.genes)
+
+        for i, x in enumerate([a, b]):
+            c = Worm(board=self.board, genes=x)
+            self.board.worms.append(c)
+            c.place(targets[i])
+
+    def eat(self, pos):
+        neighbor = self.board.at(pos)
+        self.energy += (neighbor.energy + 0.5)
+        neighbor.destroy()
 
     def turn(self):
         if not self.alive:
@@ -225,34 +249,9 @@ class Worm(object):
             self.procreate(random.choice(partners))
             return
 
-        target = random.choice(self.possible_targets)
-
-        if self.board.is_free(target):
-            self.move(target)
-        else:
-            neighbor = self.board.at(target)
-
-            if neighbor.alive:
-                if neighbor.species == self.species:
-                    targets = self.available_targets
-
-                    if len(targets) >= 2:
-                        a, b = h.crossover(self.genes, neighbor.genes)
-
-                        for i, x in enumerate([a, b]):
-                            c = Worm(board=self.board, genes=x)
-                            self.board.worms.append(c)
-                            c.place(targets[i])
-#                            print("BEBOK")
-
-                else:
-                    if self.wants_attack:
-                        impact = neighbor.health * self.strength
-                        neighbor.health = max(neighbor.health - impact, 0.0)
-            else:
-                self.energy += (neighbor.energy + 0.5)
-#                print(self.energy)
-                neighbor.destroy()
+        targets = self.available_targets
+        if targets:
+            self.move(random.choice(targets))
 
 
 def logic(q):
