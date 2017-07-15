@@ -1,7 +1,8 @@
 import random
 import collections
 import helpers as h
-from Tkinter import Tk, Canvas, PhotoImage  # , mainloop
+#from Tkinter import Tk, Canvas, PhotoImage  # , mainloop
+import pygame
 
 #
 
@@ -58,7 +59,7 @@ class Board(object):
     def free(self, pos):
         x, y = pos
         self.fields[x][y] = None
-        self.ops.append((pos, "#000000"))
+        self.ops.append((pos, (0, 0, 0)))
 
     def is_free(self, pos):
         x, y = pos
@@ -88,14 +89,14 @@ class Worm(object):
     ]
 
     SPECIES = [
-        "#b71c1c",
-        "#0D47A1",
-        "#558B2F",
-        "#FF8F00",
-        "#795548",
-        "#78909C",
-        "#dddddd",
-        "#FF4081"
+        (183, 28, 28),
+        (13, 71, 161),
+        (85, 139, 47),
+        (255, 143, 0),
+        (121, 85, 72),
+        (120, 144, 156),
+        (150, 150, 150),
+        (255, 64, 129)
     ]
 
     def __init__(self, board, genes=None):
@@ -131,17 +132,21 @@ class Worm(object):
 
 
 board = Board(width=WIDTH, height=HEIGHT)
-board.born(50)
+board.born(5000)
 
 
-window = Tk()
-canvas = Canvas(window, width=WIDTH, height=HEIGHT, bg="#000000")
-canvas.pack()
-img = PhotoImage(width=WIDTH, height=HEIGHT)
-canvas.create_image((WIDTH/2, HEIGHT/2), image=img, state="normal")
+#window = Tk()
+#canvas = Canvas(window, width=WIDTH, height=HEIGHT, bg="#000000")
+#canvas.pack()
+#img = PhotoImage(width=WIDTH, height=HEIGHT)
+#canvas.create_image((WIDTH/2, HEIGHT/2), image=img, state="normal")
+
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 n = 0
-while True:
+running = True
+while running:
+    print("TURA")
     for worm in board.worms:
         worm.move()
 
@@ -149,7 +154,12 @@ while True:
     if n % 1 == 0:
         for op in board.ops:
             pos, color = op
-            img.put(color, pos)
+            screen.set_at(pos, color)
 
-        window.update_idletasks()
-        window.update()
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+#        window.update_idletasks()
+#        window.update()
