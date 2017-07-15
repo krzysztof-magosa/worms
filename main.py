@@ -1,24 +1,23 @@
 import random
-import collections
 import helpers as h
 import pygame
-# from multiprocessing import Process, Queue, SimpleQueue
+import multiprocessing as mp
 
 #
 
-WIDTH, HEIGHT = 50, 50
+WIDTH, HEIGHT = 100, 100
 
 #
 
 
 class Board(object):
-    def __init__(self, width, height):
+    def __init__(self, width, height, queue):
         self.width = width
         self.height = height
         self.fields = [[None for _y in range(height)] for _x in range(width)]
-        self.ops = collections.deque()
+#        self.ops = collections.deque()
         self.worms = []
-#        self.ops_queue = SimpleQueue()
+        self.ops_queue = queue
 
     def is_correct_position(self, pos):
         x, y = pos
@@ -55,14 +54,15 @@ class Board(object):
     def put(self, pos, worm):
         x, y = pos
         self.fields[x][y] = worm
-        self.ops.append((pos, worm.species))
-#        self.ops_queue.put((pos, worm.species))
+#        self.ops.append((pos, worm.species))
+        self.ops_queue.put((pos, worm.species))
+#        print(self.ops_queue.full())
 
     def free(self, pos):
         x, y = pos
         self.fields[x][y] = None
-        self.ops.append((pos, (0, 0, 0)))
-#        self.ops_queue.put((pos, (0, 0, 0)))
+#        self.ops.append((pos, (0, 0, 0)))
+        self.ops_queue.put((pos, (0, 0, 0)))
 
     def is_free(self, pos):
         x, y = pos
@@ -76,12 +76,13 @@ class Board(object):
 
 
 class Worm(object):
-    GENES_NUM = 20
+    GENES_NUM = 25
     GENES_GENDER = slice(0, 1)  # 0
-    GENES_SPECIES = slice(1, 4)  # 1-3
-    GENES_AGGRESSION = slice(4, 7)  # 4-6
-    GENES_HEALTH = slice(7, 10)  # 7-9
-    GENES_STRENGTH = slice(10, 13)  # 10-12
+    GENES_SPECIES = slice(1, 4)  # 1-3 (3)
+    GENES_AGGRESSION = slice(4, 10)  # 4-9 (5)
+    GENES_HEALTH = slice(10, 16)  # 10-15 (5)
+    GENES_STRENGTH = slice(16, 22)  # 16-21 (5)
+    GENES_TEMPERAMENT = slice(22, 28) # 22-27 (5)
 
     MOVES = [
         # x,  y
@@ -116,9 +117,10 @@ class Worm(object):
         self.genes = genes if genes else h.generate_bin(20)
         self.health = h.decode_bin(self.genes[self.GENES_HEALTH])
         self.energy = 1.0
-        self.turn_energy = 0.002
-        self.starvation_impact = 0.01 * self.health
+        self.turn_energy = 0.05
+        self.starvation_impact = 0.20 * self.health
         self.garbage = False
+        self.strength = h.decode_bin(self.genes[self.GENES_STRENGTH])
 
     def destroy(self):
 #        print("TO BE DESTROYED")
@@ -138,10 +140,6 @@ class Worm(object):
         return h.probability(p)
 
     @property
-    def strength(self):
-        return h.decode_bin(self.genes[self.GENES_STRENGTH])
-
-    @property
     def alive(self):
         return self.health > 0.0
 
@@ -156,8 +154,25 @@ class Worm(object):
         self.board.put(self.position, self)
 
     @property
+    def surrounding_targets(self):
+        result = []
+        for m in self.MOVES:
+            result.append(
+                (
+                    self.position[0] + m[0],
+                    self.position[1] + m[1]
+                )
+            )
+
+        return result
+
+    @property
+    def possible_targets(self):
+        return [x for x in self.surrounding_targets if self.board.is_correct_position(x)]
+
+    @property
     def available_targets(self):
-        return [x for x in self.MOVES if self.board.is_correct_position(x) and self.board.is_free(x)]
+        return [x for x in self.surrounding_targets if self.board.is_correct_position(x) and self.board.is_free(x)]
 
     def turn(self):
         if not self.alive:
@@ -170,15 +185,7 @@ class Worm(object):
         if self.energy == 0:
             self.health = max(self.health - self.starvation_impact, 0.0)
 
-        m = random.choice(self.MOVES)
-        target = (
-            self.position[0] + m[0],
-            self.position[1] + m[1]
-        )
-
-        if not self.board.is_correct_position(target):
-            # print("INCORRECT POSITION")
-            return
+        target = random.choice(self.possible_targets)
 
         if self.board.is_free(target):
             self.move(target)
@@ -208,32 +215,44 @@ class Worm(object):
                 neighbor.destroy()
 
 
-board = Board(width=WIDTH, height=HEIGHT)
-board.born(50)
+def logic(q):
+    board = Board(width=WIDTH, height=HEIGHT, queue=q)
+    board.born(100)
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    while True:
+        for worm in board.worms:
+            worm.turn()
 
-n = 0
-running = True
-while running:
-#    print("TURA")
-    for worm in board.worms:
-        worm.turn()
+        board.after_turn()
 
-    board.after_turn()
-
-    n += 1
-    if n % 1 == 0:
         print("Total:  {}".format(len(board.worms)))
         print("Alive:  {}".format(sum([1 for x in board.worms if x.alive])))
         print("Dead:   {}".format(sum([1 for x in board.worms if not x.alive])))
         print("Hungry: {}".format(sum([1 for x in board.worms if x.energy == 0.0])))
 
-        for op in board.ops:
-            pos, color = op
-            screen.set_at(pos, color)
 
-        pygame.display.flip()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+q = mp.Queue()
+
+lp = mp.Process(target=logic, args=(q,))
+lp.start()
+
+cycle = 10
+while True:
+    if q.full():
+        cycle += 10
+        print(cycle)
+
+    for x in range(cycle):
+#        print(cycle)
+        op = q.get()
+        pos, color = op
+        screen.set_at(pos, color)
+
+    pygame.display.flip()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+lp.join()
