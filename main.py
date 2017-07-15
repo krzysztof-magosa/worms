@@ -89,14 +89,14 @@ class Worm(object):
     ]
 
     SPECIES = [
-        (183, 28, 28),
-        (13, 71, 161),
-        (85, 139, 47),
-        (255, 143, 0),
-        (121, 85, 72),
-        (120, 144, 156),
-        (150, 150, 150),
-        (255, 64, 129)
+        (255, 255, 255),
+        (255, 0, 0),
+        (0, 255, 0),
+        (0, 0, 255),
+        (255, 255, 0),
+        (0, 255, 255),
+        (255, 0, 255),
+        (120, 0, 120)
     ]
 
     def __init__(self, board, genes=None):
@@ -134,13 +134,6 @@ class Worm(object):
 board = Board(width=WIDTH, height=HEIGHT)
 board.born(5000)
 
-
-#window = Tk()
-#canvas = Canvas(window, width=WIDTH, height=HEIGHT, bg="#000000")
-#canvas.pack()
-#img = PhotoImage(width=WIDTH, height=HEIGHT)
-#canvas.create_image((WIDTH/2, HEIGHT/2), image=img, state="normal")
-
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 n = 0
@@ -151,7 +144,7 @@ while running:
         worm.move()
 
     n += 1
-    if n % 1 == 0:
+    if n % 5 == 0:
         for op in board.ops:
             pos, color = op
             screen.set_at(pos, color)
@@ -160,6 +153,3 @@ while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
-#        window.update_idletasks()
-#        window.update()
