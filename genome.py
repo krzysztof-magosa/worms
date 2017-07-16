@@ -3,14 +3,14 @@ import collections
 
 
 class GenomeHandler(object):
-    def __init__(self, genes):
-        self.genes = genes
+    def __init__(self, genes_description):
+        self.genes_description = genes_description
         self.count = 0
 
         index = 0
         self.genes_map = collections.OrderedDict()
-        for name, item in genes.items():
-            self.genes_map[name] = slice(index, index + item["count"])
+        for item in self.genes_description:
+            self.genes_map[item["name"]] = slice(index, index + item["count"])
             index += item["count"]
             self.count += item["count"]
 
@@ -26,29 +26,12 @@ class GenomeHandler(object):
         assert(len(genome) == self.count)
 
         data = dict()
-        for name, item in self.genes.items():
-            base = 1.0
+        for item in self.genes_description:
+            value = h.decode_bin(genome[self.genes_map[item["name"]]])
 
-            if "base" in item:
-                base = item["base"]
+            if "choices" in item:
+                value = item["choices"][int(value)]
 
-            if "dict" in item:
-                base = None
-
-            value = h.decode_bin(
-                genome[self.genes_map[name]],
-                base=base
-            )
-
-            if "type" in item:
-                if item["type"] == "int":
-                    value = int(value)
-                else:
-                    raise ValueError("Unsupported type.")
-
-            if "dict" in item:
-                value = item["dict"][int(value)]
-
-            data[name] = value
+            data[item["name"]] = value
 
         return data

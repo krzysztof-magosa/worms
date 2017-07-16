@@ -14,48 +14,6 @@ position_strategies:
     module: position_strategies
     class: CirclePositionStrategy
 
-creature:
-  module: creatures
-  class: Worm
-  genes:
-    gender:
-      count: 1
-      dict:
-        - male
-        - female
-    species:
-      count: 3
-      dict:
-        - [244, 67, 54]
-        - [233, 30, 99]
-        - [156, 39, 176]
-        - [63, 81, 181]
-        - [33, 150, 243]
-        - [0, 150, 136]
-        - [205, 220, 57]
-        - [255, 193, 7]
-    aggression:
-      count: 6
-    max_health:
-      count: 6
-    strength:
-      count: 6
-    temperament:
-      count: 6
-    max_age:
-      count: 6
-      base: 100
-      type: int
-    mobility:
-      count: 6
-    max_energy:
-      count: 6
-    eats_own_carrion:
-      count: 1
-      dict:
-        - true
-        - false
-
 board:
   width: 200
   height: 200

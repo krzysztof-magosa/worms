@@ -1,4 +1,5 @@
 import helpers as h
+from genome import GenomeHandler
 import random
 
 
@@ -19,19 +20,21 @@ class Creature(object):
     def color(self):
         raise NotImplementedError()
 
-    @staticmethod
-    def genes_description():
+    @classmethod
+    def genes_description(cls):
         raise NotImplementedError()
 
-    def initialize_gh(self):
-        if hasattr(type(self), "gh"):
-            return
+    @classmethod
+    def gh(cls):
+        if not hasattr(cls, "gh_cache"):
+            cls.gh_cache = GenomeHandler(cls.genes_description())
 
-        type(self).gh = len(self.genes_description())
+        return cls.gh_cache
 
     def __init__(self, genes=[]):
-        self.genes = genes
-        self.initialize_gh()
+        self.genes = genes if genes else self.gh().generate()
+        self.data = self.gh().decode(self.genes)
+        print(self.data)
         self.init()
 
     def move(self, destination):
@@ -40,26 +43,28 @@ class Creature(object):
         self.position = destination
         self.board.check_in(self)
 
+
 class Dupa(Creature):
     @property
     def color(self):
         return self.species if self.alive else (50, 50, 50)
 
-    @staticmethod
-    def genes_description():
+    @classmethod
+    def genes_description(cls):
         return [
         ]
 
     def init(self):
         pass
 
+
 class Worm(Creature):
     @property
     def color(self):
         return self.species if self.alive else (50, 50, 50)
 
-    @staticmethod
-    def genes_description():
+    @classmethod
+    def genes_description(cls):
         return [
             dict(
                 name="gender",

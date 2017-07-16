@@ -2,7 +2,7 @@ import yaml
 import pygame
 import multiprocessing as mp
 import importlib
-from creatures import Worm,Dupa
+from creatures import Worm, Dupa
 
 from board import Board
 from genome import GenomeHandler
@@ -21,12 +21,7 @@ class Application(object):
         )
 
     def init_population(self):
-        self.gh = GenomeHandler(self.options["creature"]["genes"])
-
         worm = Worm()
-        dupa = Dupa()
-        print(worm.gh)
-        print(dupa.gh)
         exit(0)
 
         for item in self.options.get("initial_populations"):
