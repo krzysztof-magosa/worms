@@ -1,18 +1,49 @@
 ---
 
+position_strategies:
+  random:
+    module: position_strategies
+    class: RandomPositionStrategy
+  horizontal:
+    module: position_strategies
+    class: HorizontalPositionStrategy
+  vertical:
+    module: position_strategies
+    class: VerticalPositionStrategy
+  circle:
+    module: position_strategies
+    class: CirclePositionStrategy
+
 board:
   width: 200
   height: 200
 
 initial_populations:
-  - number: 100
-    position:
-      strategy: random
-      seed: 2
-  - number: 100
+  - count: 300
     position:
       strategy: circle
       radius: 25
       point:
-        x: 100
-        y: 100
+        x: 0
+        y: 0
+  - count: 300
+    position:
+      strategy: circle
+      radius: 25
+      point:
+        x: 0
+        y: 199
+  - count: 300
+    position:
+      strategy: circle
+      radius: 25
+      point:
+        x: 199
+        y: 199
+  - count: 300
+    position:
+      strategy: circle
+      radius: 25
+      point:
+        x: 199
+        y: 0

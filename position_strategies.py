@@ -1,11 +1,5 @@
+import math
 import random
-
-# https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
-#    def rand_circle(self):
-#        t = 2.0*math.pi*random.random()
-#        u = random.random()+random.random()
-#        r = 2.0-u if u > 1 else u
-#        return (r*math.cos(t), r*math.sin(t))
 
 
 class PositionStrategy(object):
@@ -48,4 +42,22 @@ class RandomPositionStrategy(PositionStrategy):
             yield (
                 random.randint(0, self.board.width - 1),
                 random.randint(0, self.board.height - 1)
+            )
+
+
+class CirclePositionStrategy(PositionStrategy):
+    def positions(self):
+        # https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
+
+        while True:
+            t = 2.0 * math.pi * random.random()
+            u = random.random() + random.random()
+            r = 2.0-u if u > 1 else u
+
+            xo = r * math.cos(t) * self.options["radius"]
+            yo = r * math.sin(t) * self.options["radius"]
+
+            yield (
+                int(self.options["point"]["x"] + xo),
+                int(self.options["point"]["y"] + yo)
             )

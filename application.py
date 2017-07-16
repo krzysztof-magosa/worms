@@ -1,6 +1,7 @@
 import yaml
 import pygame
 import multiprocessing as mp
+import importlib
 from creatures import Worm
 
 from board import Board
@@ -19,13 +20,23 @@ class Application(object):
 
     def init_population(self):
         for item in self.options.get("initial_populations"):
-            print(item)
+            ps_def = self.options["position_strategies"][item["position"]["strategy"]]
+            mod = importlib.import_module(ps_def["module"])
+            obj_class = getattr(mod, ps_def["class"])
+            obj = obj_class(board=self.board, options=item["position"])
+            positions = obj.positions()
+
+            for n in range(item["count"]):
+                while True:
+                    position = next(positions)
+                    if self.board.is_free(position):
+                        worm = Worm()
+                        self.board.put(worm, position)
+                        break
 
     def logic(self):
-        for x in range(10):
-            for y in range(10):
-                worm = Worm()
-                self.board.put(worm, (x, y))
+        self.init_board()
+        self.init_population()
 
         while True:
             for creature in self.board.creatures:
@@ -33,8 +44,6 @@ class Application(object):
 
     def run(self):
         """Entrypoint of application."""
-        self.init_board()
-
         self.logic_process = mp.Process(target=self.logic)
         self.logic_process.start()
 
@@ -45,8 +54,8 @@ class Application(object):
     def init_ui(self):
         self.ui = pygame.display.set_mode(
             (
-                self.board.width,
-                self.board.height
+                self.options["board"]["width"],
+                self.options["board"]["height"],
             )
         )
 
