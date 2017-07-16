@@ -1,5 +1,6 @@
 import helpers as h
 from genome import GenomeHandler
+import itertools
 import random
 
 
@@ -31,8 +32,8 @@ class Creature(object):
 
         return cls.gh_cache
 
-    def __init__(self, genes=[]):
-        self.genes = genes if genes else self.gh().generate()
+    def __init__(self, genes=[], statics=[]):
+        self.genes = genes if genes else self.gh().generate(statics=statics)
         self.data = self.gh().decode(self.genes)
         print(self.data)
         self.init()
@@ -43,20 +44,20 @@ class Creature(object):
         self.position = destination
         self.board.check_in(self)
 
-
-class Dupa(Creature):
     @property
-    def color(self):
-        return self.species if self.alive else (50, 50, 50)
+    def any_destinations(self):
+        for m in self.MOVES:
+            yield (
+                self.position[0] + m[0],
+                self.position[1] + m[1]
+            )
 
-    @classmethod
-    def genes_description(cls):
-        return [
-        ]
-
-    def init(self):
-        pass
-
+    @property
+    def possible_destinations(self):
+        return itertools.ifilter(
+            lambda x: self.board.is_correct_position(x),
+            self.any_destinations
+        )
 
 class Worm(Creature):
     @property
@@ -190,33 +191,16 @@ class Worm(Creature):
         return (self.age >= self.max_age * 0.18) and (self.age <= self.max_age * 0.65)
 
     @property
-    def surrounding_targets(self):
-        result = []
-        for m in self.MOVES:
-            result.append(
-                (
-                    self.position[0] + m[0],
-                    self.position[1] + m[1]
-                )
-            )
-
-        return result
+    def possible_free_destinations(self):
+        return [x for x in self.possible_destinations if self.board.is_free(x)]
 
     @property
-    def possible_targets(self):
-        return [x for x in self.surrounding_targets if self.board.is_correct_position(x)]
-
-    @property
-    def available_targets(self):
-        return [x for x in self.surrounding_targets if self.board.is_correct_position(x) and self.board.is_free(x)]
-
-    @property
-    def possible_nonfree(self):
-        return [x for x in self.surrounding_targets if self.board.is_correct_position(x) and not self.board.is_free(x)]
+    def possible_nonfree_destinations(self):
+        return [x for x in self.possible_destinations if not self.board.is_free(x)]
 
     @property
     def possible_food(self):
-        food = [x for x in self.possible_nonfree if not self.board.at(x).alive]
+        food = [x for x in self.possible_nonfree_destinations if not self.board.at(x).alive]
 
         if not self.eats_own_carrion:
             food = [x for x in food if self.board.at(x).species != self.species]
@@ -225,13 +209,13 @@ class Worm(Creature):
 
     @property
     def possible_partners(self):
-        return [x for x in self.possible_nonfree if self.board.at(x).alive and self.board.at(x).species == self.species and self.board.at(x).want_partner and self.board.at(x).gender != self.gender]
+        return [x for x in self.possible_nonfree_destinations if self.board.at(x).alive and self.board.at(x).species == self.species and self.board.at(x).want_partner and self.board.at(x).gender != self.gender]
 
     @property
     def possible_victims(self):
         ms = self.species.index(max(self.species))
         #return [x for x in self.possible_nonfree if self.board.at(x).alive and self.board.at(x).species != self.species]
-        return [x for x in self.possible_nonfree if self.board.at(x).alive and ms != self.board.at(x).species.index(max(self.board.at(x).species))]
+        return [x for x in self.possible_nonfree_destinations if self.board.at(x).alive and ms != self.board.at(x).species.index(max(self.board.at(x).species))]
 
     @property
     def want_food(self):
@@ -239,7 +223,7 @@ class Worm(Creature):
 
     @property
     def want_procreation(self):
-        targets = self.available_targets
+        targets = self.possible_free_destinations
         return self.procreation_able and len(targets) >= 2 and h.probability(self.temperament) and not self.want_food
 
     @property
@@ -248,7 +232,7 @@ class Worm(Creature):
 
     @property
     def want_move(self):
-        return h.probability(self.mobility) and self.energy > 0.0
+        return h.probability(self.mobility) # and self.energy > 0.0
 
     @property
     def want_attack(self):
@@ -292,7 +276,7 @@ class Worm(Creature):
 #            print("NIE CHCEM")
             return
 
-        targets = self.available_targets
+        targets = self.possible_free_destinations
         random.shuffle(targets)
         # @TODO maybe random.choices() to be used with python 3
 
@@ -355,7 +339,7 @@ class Worm(Creature):
             self.last = 'attack'
             return
 
-        targets = self.available_targets
+        targets = self.possible_free_destinations
         if targets and self.want_move:
             self.move(random.choice(targets))
             self.energy = max(self.energy - self.turn_energy_impact, 0.0)

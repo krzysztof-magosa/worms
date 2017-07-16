@@ -2,11 +2,9 @@ import yaml
 import pygame
 import multiprocessing as mp
 import importlib
-from creatures import Worm, Dupa
+from creatures import Worm
 
 from board import Board
-from genome import GenomeHandler
-import helpers as h
 
 
 class Application(object):
@@ -32,7 +30,7 @@ class Application(object):
                 while True:
                     position = next(positions)
                     if self.board.is_free(position):
-                        worm = Worm()
+                        worm = Worm(statics=item["genes"] if "genes" in item else dict())
                         self.board.put(worm, position)
                         break
 

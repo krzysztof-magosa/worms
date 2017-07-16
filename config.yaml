@@ -64,3 +64,16 @@ initial_populations:
       point:
         x: 100
         y: 100
+    genes:
+      strength: [1, 1, 1, 1, 1]
+      mobility: [1, 1, 1, 1, 1]
+      temperament: [1, 1, 1, 1, 1]
+      max_energy: [1, 1, 1, 1, 1]
+  - count: 15000
+    position:
+      strategy: random
+    genes:
+      max_age: [0, 0, 0, 0, 0]
+      mobility: [0, 0, 0, 0, 0]
+      strength: [0, 0, 0, 0, 0]
+      max_energy: [1, 1, 1, 1, 1]
