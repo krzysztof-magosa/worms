@@ -26,8 +26,8 @@ def crossover(a, b):
     return a[:x] + b[x:], b[:x] + a[x:]
 
 
-def mutate_bin(a, p=0.02):
-    if probability(p):
+def mutate_bin(a, p=0.01):
+    if False and probability(p):
         a = list(a)
         x = random.choice(range(len(a)))
         a[x] = 0 if a[x] else 1

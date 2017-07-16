@@ -3,9 +3,36 @@ import random
 
 
 class Creature(object):
+    MOVES = [
+        # x, y
+        (-1, -1),  # left, up
+        (-1, 0),  # left,
+        (-1, 1),  # left, down
+        (1, -1),  # right, up
+        (1, 0),  # right
+        (1, 1),  # right, down
+        (0, -1),  # up
+        (0, 1),  # down
+    ]
+
     @property
     def color(self):
         raise NotImplementedError()
+
+    @staticmethod
+    def genes_description():
+        raise NotImplementedError()
+
+    def initialize_gh(self):
+        if hasattr(type(self), "gh"):
+            return
+
+        type(self).gh = len(self.genes_description())
+
+    def __init__(self, genes=[]):
+        self.genes = genes
+        self.initialize_gh()
+        self.init()
 
     def move(self, destination):
         """Moves creature to destination on board."""
@@ -13,84 +40,137 @@ class Creature(object):
         self.position = destination
         self.board.check_in(self)
 
+class Dupa(Creature):
+    @property
+    def color(self):
+        return self.species if self.alive else (50, 50, 50)
+
+    @staticmethod
+    def genes_description():
+        return [
+        ]
+
+    def init(self):
+        pass
 
 class Worm(Creature):
     @property
     def color(self):
         return self.species if self.alive else (50, 50, 50)
 
-    GENES_NUM = 47
-    GENES_GENDER = slice(0, 1)  # 0 (1)
-    GENES_SPECIES = slice(1, 4)  # 1-3 (3)
-    GENES_AGGRESSION = slice(4, 10)  # 4-9 (6)
-    GENES_HEALTH = slice(10, 16)  # 10-15 (6)
-    GENES_STRENGTH = slice(16, 22)  # 16-21 (6)
-    GENES_TEMPERAMENT = slice(22, 28)  # 22-27 (6)
-    GENES_LONGEVITY = slice(28, 34)  # 28-33 (6)
-    GENES_MOBILITY = slice(34, 40)  # 34-39 (6)
-    GENES_ENERGY = slice(40, 46)  # 40-45 (6)
-    GENES_EATS_OWN_CARRION = slice(46, 47)  # 46-46 (1)
+    @staticmethod
+    def genes_description():
+        return [
+            dict(
+                name="gender",
+                count=1,
+                choices=["male", "female"]
+            ),
+            dict(
+                name="species",
+                count=3,
+                choices=[
+                    (244, 67, 54),
+                    (233, 30, 99),
+                    (156, 39, 176),
+                    (63, 81, 181),
+                    (33, 150, 243),
+                    (0, 150, 136),
+                    (205, 220, 57),
+                    (255, 193, 7)
+                ]
+            ),
+            dict(
+                name="aggression",
+                count=5
+            ),
+            dict(
+                name="max_health",
+                count=5
+            ),
+            dict(
+                name="strength",
+                count=5
+            ),
+            dict(
+                name="temperament",
+                count=5
+            ),
+            dict(
+                name="max_age",
+                count=5
+            ),
+            dict(
+                name="mobility",
+                count=5
+            ),
+            dict(
+                name="max_energy",
+                count=5
+            ),
+            dict(
+                name="eats_own_carrion",
+                count=1,
+                choices=[True, False]
+            )
+        ]
 
-    MOVES = [
-        # x,  y
-        (-1, -1),  # left, up
-        (-1,  0),  # left,
-        (-1,  1),  # left, down
-        ( 1, -1),  # right, up
-        ( 1,  0),  # right
-        ( 1,  1),  # right, down
-        ( 0, -1),  # up
-        ( 0,  1),  # down
-    ]
+    def init(self):
+#        self.health = self.max_health
+#        self.energy = self.max_energy
+#        self.turn_energy_impact = 0.1 * self.max_energy
+#        self.starvation_impact = 0.333 * self.max_health
 
-    GENDERS = [
-        "female",
-        "male"
-    ]
-
-    SPECIES = [
-        (244, 67, 54),
-        (233, 30, 99),
-        (156, 39, 176),
-        (63, 81, 181),
-        (33, 150, 243),
-        (0, 150, 136),
-        (205, 220, 57),
-        (255, 193, 7)
-    ]
-
-    def __init__(self, genes=None):
-        self.genes = genes if genes else h.generate_bin(self.GENES_NUM)
-        self.max_health = max(h.decode_bin(self.genes[self.GENES_HEALTH]), 0.01)
-        self.health = self.max_health
-        self.max_energy = max(h.decode_bin(self.genes[self.GENES_ENERGY]), 0.01)
-        self.energy = self.max_energy
-        self.turn_energy_impact = 0.1 * self.max_energy
-        self.starvation_impact = 0.333 * self.max_health
-        self.garbage = False
-        self.strength = max(h.decode_bin(self.genes[self.GENES_STRENGTH]), 0.01)
-        self.temperament = max(h.decode_bin(self.genes[self.GENES_TEMPERAMENT]), 0.01)
-        self.aggression = max(h.decode_bin(self.genes[self.GENES_AGGRESSION]), 0.01)
         self.age = 0
-        self.max_age = int(h.decode_bin(self.genes[self.GENES_LONGEVITY], base=30.0))
-        self.mobility = max(h.decode_bin(self.genes[self.GENES_MOBILITY]), 0.01)
-        self.died = False
         self.fear = 0.0
+        self.died = False
+
         self.last = ''
-        self.eats_own_carrion = h.decode_bin(self.genes[self.GENES_EATS_OWN_CARRION]) == 1.0
-        self.rg = random.Random()
-        self.rg.seed(random.random())
 
     def destroy(self):
         self.garbage = True
 
     @property
     def gender(self):
-        return h.decode_dict(self.genes[self.GENES_GENDER], self.GENDERS)
+        return self.data["gender"]
 
     @property
     def species(self):
-        return h.decode_dict(self.genes[self.GENES_SPECIES], self.SPECIES)
+        return self.data["species"]
+
+    @property
+    def max_health(self):
+        return max(self.data["max_health"], 0.01)
+
+    @property
+    def max_energy(self):
+        return max(self.data["max_energy"], 0.01)
+
+    @property
+    def strength(self):
+        return max(self.data["strength"], 0.01)
+
+    @property
+    def temperament(self):
+        return max(self.data["temperament"], 0.01)
+
+    @property
+    def aggression(self):
+        return max(self.data["aggression"], 0.01)
+
+    @property
+    def max_age(self):
+        return max(self.data["max_age"], 1)
+
+    @property
+    def mobility(self):
+        return self.data["mobility"]
+
+    @property
+    def eats_own_carrion(self):
+        return self.data["eats_own_carrion"]
+
+#
 
     @property
     def alive(self):
@@ -272,6 +352,6 @@ class Worm(Creature):
 
         targets = self.available_targets
         if targets and self.want_move:
-            self.move(self.rg.choice(targets))
+            self.move(random.choice(targets))
             self.energy = max(self.energy - self.turn_energy_impact, 0.0)
             return

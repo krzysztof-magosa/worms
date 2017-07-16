@@ -2,9 +2,11 @@ import yaml
 import pygame
 import multiprocessing as mp
 import importlib
-from creatures import Worm
+from creatures import Worm,Dupa
 
 from board import Board
+from genome import GenomeHandler
+import helpers as h
 
 
 class Application(object):
@@ -19,6 +21,14 @@ class Application(object):
         )
 
     def init_population(self):
+        self.gh = GenomeHandler(self.options["creature"]["genes"])
+
+        worm = Worm()
+        dupa = Dupa()
+        print(worm.gh)
+        print(dupa.gh)
+        exit(0)
+
         for item in self.options.get("initial_populations"):
             ps_def = self.options["position_strategies"][item["position"]["strategy"]]
             mod = importlib.import_module(ps_def["module"])
@@ -30,7 +40,10 @@ class Application(object):
                 while True:
                     position = next(positions)
                     if self.board.is_free(position):
-                        worm = Worm()
+                        worm = Worm(
+                            gh=self.gh,
+                            genes=item["genes"] if "genes" in item else dict()
+                        )
                         self.board.put(worm, position)
                         break
 
