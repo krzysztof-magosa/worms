@@ -1,5 +1,12 @@
 import random
 
+# https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
+#    def rand_circle(self):
+#        t = 2.0*math.pi*random.random()
+#        u = random.random()+random.random()
+#        r = 2.0-u if u > 1 else u
+#        return (r*math.cos(t), r*math.sin(t))
+
 
 class PositionStrategy(object):
     def __init__(self, board, options):
@@ -9,12 +16,6 @@ class PositionStrategy(object):
 
     def positions(self):
         raise NotImplementedError()
-
-    def option(self, name, default=None):
-        if name in self.options:
-            return self.options[name]
-        else:
-            return default
 
     def init(self):
         pass
@@ -38,7 +39,7 @@ class RandomPositionStrategy(PositionStrategy):
     def init(self):
         self.rg = random.Random()
 
-        seed = self.option('seed')
+        seed = self.options.get('seed', None)
         if seed:
             self.rg.seed(seed)
 
