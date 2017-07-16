@@ -3,6 +3,8 @@ import helpers as h
 import pygame
 import multiprocessing as mp
 import yaml
+import itertools
+
 #
 
 WIDTH, HEIGHT = 200, 200
@@ -34,6 +36,12 @@ class Board(object):
             random.randint(0, self.width-1),
             random.randint(0, self.height-1)
         )
+
+    def rand_circle(self):
+        t = 2.0*math.pi*random.random()
+        u = random.random()+random.random()
+        r = 2.0-u if u > 1 else u
+        return (r*math.cos(t), r*math.sin(t))
 
     def born(self, num, feed=False):
         for _n in range(num):
@@ -143,6 +151,8 @@ class Worm(object):
         self.fear = 0.0
         self.last = ''
         self.eats_own_carrion = h.decode_bin(self.genes[self.GENES_EATS_OWN_CARRION]) == 1.0
+        self.rg = random.Random()
+        self.rg.seed(random.random())
 
     def destroy(self):
 #        print("TO BE DESTROYED")
@@ -345,14 +355,17 @@ class Worm(object):
 
         targets = self.available_targets
         if targets and self.want_move:
-#            print("MOVE")
-            self.move(random.choice(targets))
+            self.move(self.rg.choice(targets))
             self.energy = max(self.energy - self.turn_energy_impact, 0.0)
             return
 
 
 def logic(q):
+    config = yaml.load(open('config.yaml'))
+    print(config)
+
     board = Board(width=WIDTH, height=HEIGHT, queue=q)
+#    board.born(500)
     board.born(int(WIDTH * HEIGHT * 0.1))
     board.born(int(WIDTH * HEIGHT * 0.2), feed=True)
 
