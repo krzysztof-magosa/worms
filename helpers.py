@@ -6,10 +6,10 @@ def probability(p):
 
 
 def generate_bin(n):
-#    print([random.randint(0, 1) for x in range(n)])
+    return [random.randint(0, 1) for x in range(n)]
 #    print([random.randint(0, 1)] + [1, 1, 1] + [7 * [1, 1, 1, 1, 1, 1]])
 #    exit(0)
-    # return [random.randint(0, 1) for x in range(n)]
+#    return [random.randint(0, 1) for x in range(n-1)] + [0]
     r = random.randint(0, 2)
 
     if r == 0:
@@ -26,7 +26,7 @@ def crossover(a, b):
     return a[:x] + b[x:], b[:x] + a[x:]
 
 
-def mutate_bin(a, p=0.01):
+def mutate_bin(a, p=0.02):
     if probability(p):
         a = list(a)
         x = random.choice(range(len(a)))

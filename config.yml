@@ -1,0 +1,14 @@
+---
+
+board:
+  width: 200
+  height: 200
+
+initial_populations:
+  - position:
+      strategy: range_around_point
+      range: 25
+      point:
+        x: 100
+        y: 100
+    number: 100
