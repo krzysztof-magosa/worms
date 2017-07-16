@@ -121,10 +121,10 @@ class Worm(Creature):
         ]
 
     def init(self):
-#        self.health = self.max_health
-#        self.energy = self.max_energy
-#        self.turn_energy_impact = 0.1 * self.max_energy
-#        self.starvation_impact = 0.333 * self.max_health
+        self.health = self.max_health
+        self.energy = self.max_energy
+        self.turn_energy_impact = 0.1 * self.max_energy
+        self.starvation_impact = 0.333 * self.max_health
 
         self.age = 0
         self.fear = 0.0
@@ -165,7 +165,7 @@ class Worm(Creature):
 
     @property
     def max_age(self):
-        return max(self.data["max_age"], 1)
+        return int(max(self.data["max_age"] * 100.0, 1))
 
     @property
     def mobility(self):

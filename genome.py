@@ -27,7 +27,10 @@ class GenomeHandler(object):
 
         data = dict()
         for item in self.genes_description:
-            value = h.decode_bin(genome[self.genes_map[item["name"]]])
+            value = h.decode_bin(
+                genome[self.genes_map[item["name"]]],
+                base=None if "choices" in item else 1.0
+            )
 
             if "choices" in item:
                 value = item["choices"][int(value)]

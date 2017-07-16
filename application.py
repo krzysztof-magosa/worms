@@ -21,9 +21,6 @@ class Application(object):
         )
 
     def init_population(self):
-        worm = Worm()
-        exit(0)
-
         for item in self.options.get("initial_populations"):
             ps_def = self.options["position_strategies"][item["position"]["strategy"]]
             mod = importlib.import_module(ps_def["module"])
@@ -35,10 +32,7 @@ class Application(object):
                 while True:
                     position = next(positions)
                     if self.board.is_free(position):
-                        worm = Worm(
-                            gh=self.gh,
-                            genes=item["genes"] if "genes" in item else dict()
-                        )
+                        worm = Worm()
                         self.board.put(worm, position)
                         break
 
