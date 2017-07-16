@@ -5,10 +5,14 @@ board:
   height: 200
 
 initial_populations:
-  - position:
-      strategy: range_around_point
-      range: 25
+  - number: 100
+    position:
+      strategy: random
+      seed: 2
+  - number: 100
+    position:
+      strategy: circle
+      radius: 25
       point:
         x: 100
         y: 100
-    number: 100

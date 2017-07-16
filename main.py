@@ -1,9 +1,11 @@
 import random
 import helpers as h
+import position_strategies as ps
 import pygame
 import multiprocessing as mp
 import yaml
 import itertools
+import math
 
 #
 
@@ -37,6 +39,7 @@ class Board(object):
             random.randint(0, self.height-1)
         )
 
+    # https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
     def rand_circle(self):
         t = 2.0*math.pi*random.random()
         u = random.random()+random.random()
@@ -44,11 +47,24 @@ class Board(object):
         return (r*math.cos(t), r*math.sin(t))
 
     def born(self, num, feed=False):
+        center = self.random_position()
+        r = 30.0
+
+        p = ps.RandomPositionStrategy(board=self, options=dict())
+        pr = p.positions()
         for _n in range(num):
             while True:
-                pos = self.random_position()
+                pos = next(pr)
+                #pos = self.random_position()
 
-                if self.is_free(pos):
+                #offset = self.rand_circle()
+                #pos = (
+                    #center[0] + int(offset[0] * r),
+                    #center[1] + int(offset[1] * r)
+                    #)
+
+                if self.is_correct_position(pos) and self.is_free(pos):
+                #if self.is_free(pos):
                     worm = Worm(board=self)
 
                     if feed:
@@ -366,8 +382,8 @@ def logic(q):
 
     board = Board(width=WIDTH, height=HEIGHT, queue=q)
 #    board.born(500)
-    board.born(int(WIDTH * HEIGHT * 0.1))
-    board.born(int(WIDTH * HEIGHT * 0.2), feed=True)
+    board.born(int(WIDTH * HEIGHT * 0.01))
+#    board.born(int(WIDTH * HEIGHT * 0.2), feed=True)
 
     n = 0
     while True:
