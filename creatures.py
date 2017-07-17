@@ -1,6 +1,5 @@
 import helpers as h
 from genome import GenomeHandler
-import itertools
 import random
 
 
@@ -54,10 +53,27 @@ class Creature(object):
 
     @property
     def possible_destinations(self):
-        return itertools.ifilter(
+        return filter(
             lambda x: self.board.is_correct_position(x),
             self.any_destinations
         )
+
+    @property
+    def possible_free_destinations(self):
+        return filter(
+            lambda x: self.board.is_free(x),
+            self.possible_destinations
+        )
+
+    @property
+    def possible_nonfree_destinations(self):
+        return filter(
+            lambda x: not self.board.is_free(x),
+            self.possible_destinations
+        )
+
+    def turn(self):
+        raise NotImplementedError()
 
 
 class Worm(Creature):
@@ -144,27 +160,27 @@ class Worm(Creature):
 
     @property
     def max_health(self):
-        return max(self.data["max_health"], 0.01)
+        return self.data["max_health"]
 
     @property
     def max_energy(self):
-        return max(self.data["max_energy"], 0.01)
+        return self.data["max_energy"]
 
     @property
     def strength(self):
-        return max(self.data["strength"], 0.01)
+        return self.data["strength"]
 
     @property
     def temperament(self):
-        return max(self.data["temperament"], 0.01)
+        return self.data["temperament"]
 
     @property
     def aggression(self):
-        return max(self.data["aggression"], 0.01)
+        return self.data["aggression"]
 
     @property
     def max_age(self):
-        return int((self.data["max_age"] * 70.0) + 30)
+        return int(self.data["max_age"] * 100.0)
 
     @property
     def mobility(self):
@@ -172,10 +188,7 @@ class Worm(Creature):
 
     @property
     def eats_own_carrion(self):
-#        print(self.data["eats_own_carrion"])
         return self.data["eats_own_carrion"]
-
-#
 
     @property
     def alive(self):
@@ -188,14 +201,6 @@ class Worm(Creature):
     @property
     def procreation_able(self):
         return (self.age >= (self.max_age * 0.18)) and (self.age <= (self.max_age * 0.45)) and self.fear == 0.0
-
-    @property
-    def possible_free_destinations(self):
-        return [x for x in self.possible_destinations if self.board.is_free(x)]
-
-    @property
-    def possible_nonfree_destinations(self):
-        return [x for x in self.possible_destinations if not self.board.is_free(x)]
 
     @property
     def possible_food(self):
