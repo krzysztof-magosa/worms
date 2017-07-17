@@ -18,14 +18,17 @@ class Creature(object):
 
     @property
     def color(self):
+        """Returns (r, g, b) tuple with color of creature on board."""
         raise NotImplementedError()
 
     @classmethod
     def genes_description(cls):
+        """Returns description of genes."""
         raise NotImplementedError()
 
     @classmethod
     def gh(cls):
+        """Returns GenomeHandler."""
         if not hasattr(cls, "gh_cache"):
             cls.gh_cache = GenomeHandler(cls.genes_description())
 
@@ -45,6 +48,7 @@ class Creature(object):
 
     @property
     def any_destinations(self):
+        """Returns all destinations around creature, including invalid ones."""
         for m in self.MOVES:
             yield (
                 self.position[0] + m[0],
@@ -53,6 +57,7 @@ class Creature(object):
 
     @property
     def possible_destinations(self):
+        """Returns all valid destinations around creature."""
         return filter(
             lambda x: self.board.is_correct_position(x),
             self.any_destinations
@@ -60,6 +65,7 @@ class Creature(object):
 
     @property
     def possible_free_destinations(self):
+        """Returns all free destinations around creature."""
         return filter(
             lambda x: self.board.is_free(x),
             self.possible_destinations
@@ -67,12 +73,19 @@ class Creature(object):
 
     @property
     def possible_nonfree_destinations(self):
+        """Returns all non-free destinations around creature."""
         return filter(
             lambda x: not self.board.is_free(x),
             self.possible_destinations
         )
 
+    @property
+    def alive(self):
+        """Returns information whether creature is alive."""
+        raise NotImplementedError()
+
     def turn(self):
+        """Performs one turn."""
         raise NotImplementedError()
 
 
@@ -255,8 +268,6 @@ class Worm(Creature):
 
         return False
 
-#    def is_ally(self, neighbor):
-
     def attack(self, pos):
         neighbor = self.board.at(pos)
 
@@ -279,7 +290,6 @@ class Worm(Creature):
         neighbor = self.board.at(pos)
 
         if not neighbor.want_partner:
-#            print("NIE CHCEM")
             return
 
         targets = self.possible_free_destinations
