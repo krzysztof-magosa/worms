@@ -55,14 +55,14 @@ initial_populations:
   #     point:
   #       x: 75
   #       y: 25
-  - count: 500
+  - count: 5000
     position:
       strategy: random
     genes:
-      max_age: [0, 0, 0, 0, 0]
-      mobility: [0, 0, 0, 0, 0]
-      strength: [0, 0, 0, 0, 0]
-      max_energy: [1, 1, 1, 1, 1]
+      max_age: [0, 0, 0, 0, 0, 0, 0, 0]
+      mobility: [0, 0, 0, 0, 0, 0, 0, 0]
+      strength: [0, 0, 0, 0, 0, 0, 0, 0]
+      max_energy: [1, 1, 1, 1, 1, 1, 1, 1]
   - count: 500
     position:
       strategy: random

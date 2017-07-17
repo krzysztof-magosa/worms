@@ -59,6 +59,7 @@ class Creature(object):
             self.any_destinations
         )
 
+
 class Worm(Creature):
     @property
     def color(self):
@@ -88,31 +89,31 @@ class Worm(Creature):
             ),
             dict(
                 name="aggression",
-                count=5
+                count=8
             ),
             dict(
                 name="max_health",
-                count=5
+                count=8
             ),
             dict(
                 name="strength",
-                count=5
+                count=8
             ),
             dict(
                 name="temperament",
-                count=5
+                count=8
             ),
             dict(
                 name="max_age",
-                count=5
+                count=8
             ),
             dict(
                 name="mobility",
-                count=5
+                count=8
             ),
             dict(
                 name="max_energy",
-                count=5
+                count=8
             ),
             dict(
                 name="eats_own_carrion",
