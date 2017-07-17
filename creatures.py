@@ -35,7 +35,7 @@ class Creature(object):
     def __init__(self, genes=[], statics=[]):
         self.genes = genes if genes else self.gh().generate(statics=statics)
         self.data = self.gh().decode(self.genes)
-        print(self.data)
+#        print(self.data)
         self.init()
 
     def move(self, destination):
@@ -124,17 +124,14 @@ class Worm(Creature):
     def init(self):
         self.health = self.max_health
         self.energy = self.max_energy
-        self.turn_energy_impact = 0.1 * self.max_energy
-        self.starvation_impact = 0.333 * self.max_health
+        self.turn_energy_impact = 0.05 * self.max_energy
+        self.starvation_impact = 0.05 * self.max_health
 
         self.age = 0
         self.fear = 0.0
         self.died = False
 
         self.last = ''
-
-    def destroy(self):
-        self.garbage = True
 
     @property
     def gender(self):
@@ -166,7 +163,7 @@ class Worm(Creature):
 
     @property
     def max_age(self):
-        return int(max(self.data["max_age"] * 100.0, 1))
+        return int((self.data["max_age"] * 70.0) + 30)
 
     @property
     def mobility(self):
@@ -174,13 +171,14 @@ class Worm(Creature):
 
     @property
     def eats_own_carrion(self):
+#        print(self.data["eats_own_carrion"])
         return self.data["eats_own_carrion"]
 
 #
 
     @property
     def alive(self):
-        return self.health > 0.0 or self.age < self.max_age
+        return self.health > 0.0 and self.age < self.max_age
 
     @property
     def young(self):
@@ -188,7 +186,7 @@ class Worm(Creature):
 
     @property
     def procreation_able(self):
-        return (self.age >= self.max_age * 0.18) and (self.age <= self.max_age * 0.65)
+        return (self.age >= (self.max_age * 0.18)) and (self.age <= (self.max_age * 0.45)) and self.fear == 0.0
 
     @property
     def possible_free_destinations(self):
@@ -213,13 +211,14 @@ class Worm(Creature):
 
     @property
     def possible_victims(self):
-        ms = self.species.index(max(self.species))
-        #return [x for x in self.possible_nonfree if self.board.at(x).alive and self.board.at(x).species != self.species]
-        return [x for x in self.possible_nonfree_destinations if self.board.at(x).alive and ms != self.board.at(x).species.index(max(self.board.at(x).species))]
+        victims = [x for x in self.possible_nonfree_destinations if self.board.at(x).alive]
+        victims = filter(lambda x: self.board.at(x).species != self.species, victims)
+
+        return victims
 
     @property
     def want_food(self):
-        return self.energy < (0.3 * self.max_energy)
+        return self.energy < (0.4 * self.max_energy) or len(self.possible_free_destinations) == 0
 
     @property
     def want_procreation(self):
@@ -265,6 +264,7 @@ class Worm(Creature):
 
             impact = max(0.0, impact)
             neighbor.health = max(0.0, neighbor.health - (neighbor.max_health * impact))
+            neighbor.fear = min(neighbor.fear + 0.3, 1.0)
         else:
             neighbor.energy = max(neighbor.energy - (3 * neighbor.turn_energy_impact), 0.0)
 #            print(neighbor.energy)
@@ -285,15 +285,15 @@ class Worm(Creature):
             c = Worm(genes=x)
             self.board.put(c, targets[i])
 
-
     def eat(self, pos):
         neighbor = self.board.at(pos)
-        self.energy = min(self.max_energy, self.energy + neighbor.energy + 0.05)
-        neighbor.destroy()
-        #self.move(neighbor.position)  # ???
+        self.energy = min(self.max_energy, self.energy + neighbor.energy + 0.5)
+        self.board.remove(pos)
+        # self.move(neighbor.position)  # ???
 
     def die(self):
         if not self.died:
+#            print("TRUP")
             self.died = True
             self.board.check_in(self)
 #            print("TRUP")
@@ -317,23 +317,26 @@ class Worm(Creature):
 
         food = self.possible_food
         if food and self.want_food:
-            print("EAT")
+#            print("EAT")
             self.eat(random.choice(food))
             self.energy = max(self.energy - self.turn_energy_impact, 0.0)
             self.last = 'eat'
             return
 
         partners = self.possible_partners
-        if partners and self.want_procreation:
-            print("PROCREATE")
+        if partners and self.want_procreation and not self.want_food:
+#            print("PROCREATE")
+#            print(self.age)
+#            print(self.max_age)
+#            print(self.max_age * 0.18)
             self.procreate(random.choice(partners))
-            self.energy = max(self.energy - self.turn_energy_impact, 0.0)
+            self.energy = max(self.energy - (self.turn_energy_impact * 5), 0.0)
             self.last = 'procreate'
             return
 
         victims = self.possible_victims
         if victims and self.want_attack:
-            print("ATTACK")
+#            print("ATTACK")
             self.attack(random.choice(victims))
             self.energy = max(self.energy - self.turn_energy_impact, 0.0)
             self.last = 'attack'

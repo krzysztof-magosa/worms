@@ -62,7 +62,7 @@ class Board(object):
         """Clears current position of creature on board."""
 
         x, y = creature.position
-        self.fields[x][y] = creature
+        self.fields[x][y] = None
         self.ui_queue.put((creature.position, (0, 0, 0)))
 
     def check_in(self, creature):

@@ -38,9 +38,17 @@ class Application(object):
         self.init_board()
         self.init_population()
 
+        n = 0
         while True:
+            n += 1
             for creature in self.board.creatures:
                 creature.turn()
+
+            creatures = self.board.creatures
+            print("Total:     {}".format(len(creatures)))
+            print("Alive:     {}".format(len(filter(lambda x: x.alive, creatures))))
+            print("No energy: {}".format(len(filter(lambda x: x.energy == 0.0, creatures))))
+            print("Turn:      {}".format(n))
 
     def run(self):
         """Entrypoint of application."""
