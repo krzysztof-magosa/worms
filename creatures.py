@@ -37,7 +37,8 @@ class Creature(object):
     def __init__(self, genes=[], statics=[]):
         self.genes = genes if genes else self.gh().generate(statics=statics)
         self.data = self.gh().decode(self.genes)
-#        print(self.data)
+        self.idle_turns = 0
+        self.age = 0
         self.init()
 
     def move(self, destination):
@@ -83,6 +84,19 @@ class Creature(object):
     def alive(self):
         """Returns information whether creature is alive."""
         raise NotImplementedError()
+
+    def tick(self):
+        """Performs one turn and related operations."""
+        if self.idle_turns == 0:
+            self.turn()
+
+        self.age += 1
+        if self.idle_turns > 0:
+            self.idle_turns -= 1
+
+    def sleep(self, turns):
+        """Sleep N turns."""
+        self.idle_turns += turns
 
     def turn(self):
         """Performs one turn."""
@@ -345,9 +359,14 @@ class Worm(Creature):
 #            print(self.age)
 #            print(self.max_age)
 #            print(self.max_age * 0.18)
-            self.procreate(random.choice(partners))
+            p = random.choice(partners)
+            self.procreate(p)
             self.energy = max(self.energy - (self.turn_energy_impact * 5), 0.0)
             self.last = 'procreate'
+
+            self.sleep(5)
+            self.board.at(p).sleep(5)
+
             return
 
         victims = self.possible_victims

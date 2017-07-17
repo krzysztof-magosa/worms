@@ -42,7 +42,7 @@ class Application(object):
         while True:
             n += 1
             for creature in self.board.creatures:
-                creature.turn()
+                creature.tick()
 
             creatures = self.board.creatures
             print("Total:     {}".format(len(creatures)))
