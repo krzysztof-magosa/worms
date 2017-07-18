@@ -1,20 +1,11 @@
 import helpers as h
 from genome import GenomeHandler
 import random
+import itertools
 
 
 class Creature(object):
-    MOVES = [
-        # x, y
-        (-1, -1),  # left, up
-        (-1, 0),  # left,
-        (-1, 1),  # left, down
-        (1, -1),  # right, up
-        (1, 0),  # right
-        (1, 1),  # right, down
-        (0, -1),  # up
-        (0, 1),  # down
-    ]
+    MOVES = [x for x in itertools.product([-1, 0, 1], repeat=2) if sum(x) != 0]
 
     @property
     def color(self):
@@ -207,7 +198,7 @@ class Worm(Creature):
 
     @property
     def max_age(self):
-        return int(self.data["max_age"] * 100.0)
+        return int(self.data["max_age"] * 1000.0)
 
     @property
     def mobility(self):
