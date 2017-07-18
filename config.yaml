@@ -55,7 +55,7 @@ initial_populations:
   #     point:
   #       x: 75
   #       y: 25
-  - count: 1000
+  - count: 1
     position:
       strategy: circle
       radius: 25
