@@ -42,11 +42,16 @@ class Creature(object):
     @property
     def any_destinations(self):
         """Returns all destinations around creature, including invalid ones."""
+        result = []
         for m in self.MOVES:
-            yield (
-                self.position[0] + m[0],
-                self.position[1] + m[1]
+            result.append(
+                (
+                    self.position[0] + m[0],
+                    self.position[1] + m[1]
+                )
             )
+
+        return result
 
     @property
     def possible_destinations(self):
@@ -79,12 +84,12 @@ class Creature(object):
 
     def tick(self):
         """Performs one turn and related operations."""
-        if self.idle_turns == 0:
-            self.turn()
-
-        self.age += 1
         if not self.alive:
             self.die()
+            return
+
+        self.turn()
+        self.age += 1
 
     def schedule(self, action, turns):
         plan = (action, self.age + turns)
@@ -172,17 +177,16 @@ class Worm(Creature):
     def init(self):
         self.health = self.max_health
         self.energy = self.max_energy
-        self.turn_energy_impact = 0.05 * self.max_energy
-        self.starvation_impact = 0.05 * self.max_health
+        self.turn_energy_impact = 0.005 * self.max_energy
+        self.starvation_impact = 0.025 * self.max_health
         self.genetic_material = None
+        self.direction = 0
 
         self.age = 0
         self.fear = 0.0
         self.died = False
 
         self.last = ''
-
-        self.schedule("xxxx", 100)
 
     @property
     def gender(self):
@@ -234,7 +238,7 @@ class Worm(Creature):
 
     @property
     def procreation_able(self):
-        return (self.age >= (self.max_age * 0.18)) and (self.age <= (self.max_age * 0.45)) and self.fear == 0.0
+        return (self.age >= (self.max_age * 0.18)) and (self.age <= (self.max_age * 0.45)) #and self.fear == 0.0
 
     @property
     def possible_food(self):
@@ -262,8 +266,9 @@ class Worm(Creature):
 
     @property
     def want_procreation(self):
-        targets = self.possible_free_destinations
-        return self.procreation_able and len(targets) >= 2 and h.probability(self.temperament) and not self.want_food
+        #targets = self.possible_free_destinations
+        #return self.procreation_able and len(targets) >= 2 and h.probability(self.temperament) and not self.want_food
+        return self.gender == 'male' and self.procreation_able and h.probability(self.temperament)
 
     @property
     def want_partner(self):
@@ -271,7 +276,7 @@ class Worm(Creature):
 
     @property
     def want_move(self):
-        return h.probability(self.mobility) # and self.energy > 0.0
+        return h.probability(self.mobility) and self.energy > 0.0
 
     @property
     def want_attack(self):
@@ -342,7 +347,9 @@ class Worm(Creature):
         assert(self.gender == 'female')
         assert(self.genetic_material is None)
         self.genetic_material = material
+        self.schedule('born', int(self.max_age * 0.05))
 
+    @property
     def is_pregnant(self):
         return self.genetic_material is not None
 
@@ -351,9 +358,19 @@ class Worm(Creature):
 
         actions = self.todo()
         if actions:
-            print(actions)
-            print(self.age)
-            exit(0)
+            targets = self.possible_free_destinations
+            if len(targets) >= 2:
+                random.shuffle(targets)
+
+                for i, x in enumerate(h.crossover(self.genes, self.genetic_material)):
+                    x = h.mutate_bin(x)
+                    c = Worm(genes=x)
+                    self.board.put(c, targets[i])
+
+                self.genetic_material = None
+            else:
+                self.genetic_material = None
+#                print("PORONIENIE")
 
         # regeneration
         if self.energy > 0:
@@ -364,7 +381,7 @@ class Worm(Creature):
             self.health = max(self.health - self.starvation_impact, 0.0)
 
         food = self.possible_food
-        if food and self.want_food:
+        if food and (self.want_food or len(self.possible_free_destinations) == 0):
 #            print("EAT")
             self.eat(random.choice(food))
             self.energy = max(self.energy - self.turn_energy_impact, 0.0)
@@ -372,6 +389,7 @@ class Worm(Creature):
             return
 
         partners = self.possible_partners
+        #print(partners)
         if partners and self.want_procreation and not self.want_food:
             p = random.choice(partners)
             self.procreate(p)
@@ -389,6 +407,11 @@ class Worm(Creature):
 
         targets = self.possible_free_destinations
         if targets and self.want_move:
-            self.move(random.choice(targets))
+#            print("MOVE")
+            while not self.board.is_free(self.any_destinations[self.direction]):
+                self.direction = random.randint(0, len(self.any_destinations)-1)
+
+            self.move(self.any_destinations[self.direction])
+#            self.move(random.choice(targets))
             self.energy = max(self.energy - self.turn_energy_impact, 0.0)
             return

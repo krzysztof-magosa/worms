@@ -19,55 +19,48 @@ board:
   height: 100
 
 initial_populations:
-  # - count: 500
-  #   genes:
-  #     species: [1, 0, 0]
-  #   position:
-  #     strategy: circle
-  #     radius: 25
-  #     point:
-  #       x: 25
-  #       y: 25
-  # - count: 500
-  #   genes:
-  #     species: [0, 1, 0]
-  #   position:
-  #     strategy: circle
-  #     radius: 25
-  #     point:
-  #       y: 75
-  #       x: 25
-  # - count: 500
-  #   genes:
-  #     species: [0, 0, 1]
-  #   position:
-  #     strategy: circle
-  #     radius: 25
-  #     point:
-  #       x: 75
-  #       y: 75
-  # - count: 500
-  #   genes:
-  #     species: [1, 1, 0]
-  #   position:
-  #     strategy: circle
-  #     radius: 25
-  #     point:
-  #       x: 75
-  #       y: 25
-  - count: 1
+  - count: 500
+    genes:
+      species: [1, 0, 0]
     position:
       strategy: circle
       radius: 25
       point:
         x: 25
         y: 25
+  - count: 500
+    genes:
+      species: [0, 1, 0]
+    position:
+      strategy: circle
+      radius: 25
+      point:
+        y: 75
+        x: 25
+  - count: 500
+    genes:
+      species: [0, 0, 1]
+    position:
+      strategy: circle
+      radius: 25
+      point:
+        x: 75
+        y: 75
+  - count: 500
+    genes:
+      species: [1, 1, 0]
+    position:
+      strategy: circle
+      radius: 25
+      point:
+        x: 75
+        y: 25
 
-  # - count: 9000
-  #   position:
-  #     strategy: random
-  #   genes:
-  #     max_age: [0, 0, 0, 0, 0, 0, 0, 0]
-  #     mobility: [0, 0, 0, 0, 0, 0, 0, 0]
-  #     strength: [0, 0, 0, 0, 0, 0, 0, 0]
-  #     max_energy: [1, 1, 1, 1, 1, 1, 1, 1]
+  - count: 1000
+    position:
+      strategy: random
+    genes:
+      max_age: [0, 0, 0, 0, 0, 0, 0, 0]
+      mobility: [0, 0, 0, 0, 0, 0, 0, 0]
+      strength: [0, 0, 0, 0, 0, 0, 0, 0]
+      max_energy: [1, 1, 1, 1, 1, 1, 1, 1]
